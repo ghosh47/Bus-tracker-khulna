@@ -15,8 +15,6 @@ let campusBus = null;
 let currentStudent = null;
 let etaService = null;
 let stopsList = [];
-let simulationInterval = null;
-let currentWaypointIndex = 0;
 let locationService = null;
 let trackingService = null;
 let activeDriver = null;
@@ -26,7 +24,7 @@ let authService = null;
 document.addEventListener('DOMContentLoaded', () => {
     console.log(`[BOOT] ${APP_CONFIG.appName} v${APP_CONFIG.version} initialized.`);
 
-    // 1. Initialize Auth and Tracking if Firebase SDK is loaded
+    // 1. Initialize Auth and Tracking if Firebase SDK is present
     if (typeof firebase !== 'undefined') {
         try {
             authService = new AuthService();
@@ -34,15 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
             setupGlobalAuthHandlers();
             console.log('[FIREBASE] Services initialized successfully.');
         } catch (e) {
-            console.warn('[FIREBASE NOTICE] Check config.js keys.', e);
+            console.warn('[FIREBASE NOTICE] Check your keys in config.js.', e);
         }
     }
 
-    // 2. Student Tracking Page
+    // 2. Student Tracking Map Page
     if (document.getElementById('map')) {
         initStudentMapPage();
-        setupSimulationControls();
-        setupLiveTrackingSubscription(); // <-- Subscribes student map to Firebase
+        setupLiveTrackingSubscription();
     }
 
     // 3. Driver Dashboard Page
@@ -50,14 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
         initDriverDashboard();
     }
 
-    // 4. Login Page
+    // 4. Portal Login Page
     if (document.getElementById('login-form')) {
         initLoginPage();
     }
 });
 
 /* =========================================================
-   STUDENT PAGE CONTROLLERS (Milestones 4, 5, 8 & 9)
+   STUDENT PAGE CONTROLLERS (Live GPS & Geodesic ETA)
    ========================================================= */
 function populateStopDropdown(stops) {
     const select = document.getElementById('stop-selector');
@@ -99,12 +96,9 @@ function initStudentMapPage() {
         updateETADisplay();
     });
 
-    console.log('✅ Milestone 4: Khulna map, 15 stops, route, and bus marker loaded.');
+    console.log('✅ Student map loaded with 15 stops.');
 }
 
-/**
- * Milestone 8: Subscribes student page to Firebase Realtime Database
- */
 function setupLiveTrackingSubscription() {
     if (!trackingService) return;
 
@@ -121,15 +115,23 @@ function setupLiveTrackingSubscription() {
 
             if (statusBadge) statusBadge.className = 'badge badge-active';
             if (statusText) statusText.textContent = 'Active (Live GPS)';
-            if (mapService) mapService.updateBusMarker(data.latitude, data.longitude, campusBus.busName);
+
+            // Move the marker to the driver's phone coordinates
+            if (mapService) {
+                mapService.updateBusMarker(data.latitude, data.longitude, campusBus.busName);
+            }
 
             const timeStr = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString() : new Date().toLocaleTimeString();
-            if (lastUpdated) lastUpdated.textContent = `${timeStr} (Live Firebase Sync)`;
+            if (lastUpdated) {
+                lastUpdated.textContent = `${timeStr} (Live GPS)`;
+            }
         } else {
             campusBus.endTrip();
             if (statusBadge) statusBadge.className = 'badge badge-offline';
             if (statusText) statusText.textContent = 'Offline';
-            if (lastUpdated) lastUpdated.textContent = 'Bus has concluded its route';
+            if (lastUpdated) {
+                lastUpdated.textContent = 'Bus has concluded its route';
+            }
         }
 
         updateETADisplay();
@@ -151,7 +153,7 @@ function updateETADisplay() {
 
     if (!campusBus || !campusBus.isActive()) {
         etaDisplay.textContent = 'Bus Offline';
-        etaDetails.textContent = `Awaiting trip start to calculate ETA for ${selectedStop.getStopName()}`;
+        etaDetails.textContent = `Awaiting driver trip start to calculate ETA for ${selectedStop.getStopName()}`;
         return;
     }
 
@@ -161,6 +163,7 @@ function updateETADisplay() {
         return;
     }
 
+    // Calculate Haversine distance from the driver's phone to the selected stop
     const distanceKm = etaService.calculateRemainingDistance(
         busLoc.latitude,
         busLoc.longitude,
@@ -173,66 +176,8 @@ function updateETADisplay() {
     etaDetails.textContent = `Distance: ${distanceKm} km away from ${selectedStop.getStopName()}`;
 }
 
-function setupSimulationControls() {
-    const startBtn = document.getElementById('sim-start-btn');
-    const resetBtn = document.getElementById('sim-reset-btn');
-    const statusBadge = document.getElementById('bus-status-badge');
-    const statusText = document.getElementById('bus-status-text');
-    const lastUpdated = document.getElementById('last-updated-text');
-
-    if (!startBtn || !resetBtn) return;
-
-    startBtn.addEventListener('click', () => {
-        if (simulationInterval) return;
-
-        campusBus.startTrip('simulated-driver-01');
-        statusBadge.className = 'badge badge-active';
-        statusText.textContent = 'Active (In Transit)';
-        startBtn.disabled = true;
-        resetBtn.disabled = false;
-        updateETADisplay();
-
-        simulationInterval = setInterval(() => {
-            currentWaypointIndex = (currentWaypointIndex + 1) % ROUTE_COORDINATES.length;
-            const [lat, lng] = ROUTE_COORDINATES[currentWaypointIndex];
-            campusBus.updateLocation(lat, lng);
-            mapService.updateBusMarker(lat, lng, campusBus.busName);
-
-            if (trackingService) {
-                trackingService.publishLocation('bus-01', lat, lng, 'sim-driver');
-            }
-
-            const timestamp = new Date().toLocaleTimeString();
-            lastUpdated.textContent = `${timestamp} (Waypoint ${currentWaypointIndex + 1}/${ROUTE_COORDINATES.length})`;
-            updateETADisplay();
-        }, 1500);
-    });
-
-    resetBtn.addEventListener('click', () => {
-        clearInterval(simulationInterval);
-        simulationInterval = null;
-        currentWaypointIndex = 0;
-
-        campusBus.endTrip();
-        const [initLat, initLng] = ROUTE_COORDINATES[0];
-        campusBus.updateLocation(initLat, initLng);
-        mapService.updateBusMarker(initLat, initLng, campusBus.busName);
-
-        if (trackingService) {
-            trackingService.setBusOffline('bus-01');
-        }
-
-        statusBadge.className = 'badge badge-offline';
-        statusText.textContent = 'Offline';
-        lastUpdated.textContent = 'Awaiting bus signal...';
-        startBtn.disabled = false;
-        resetBtn.disabled = true;
-        updateETADisplay();
-    });
-}
-
 /* =========================================================
-   DRIVER PAGE CONTROLLERS (Milestones 6 & 8)
+   DRIVER PAGE CONTROLLERS (Live GPS Telemetry)
    ========================================================= */
 function initDriverDashboard() {
     activeDriver = new Driver('driver-101', 'Rafiqul Islam', 'driver@unibus.edu', 'bus-01');
@@ -253,12 +198,11 @@ function initDriverDashboard() {
         gpsStatusVal.style.color = 'var(--warning)';
 
         const started = locationService.startWatching(
-            // Success Callback
             (loc) => {
                 packetsTransmitted++;
                 activeDriver.shareLocation(campusBus, loc.latitude, loc.longitude);
 
-                // Publish coordinates to Firebase Realtime Database
+                // Publish phone coordinates directly to Firebase Realtime Database
                 if (trackingService) {
                     trackingService.publishLocation('bus-01', loc.latitude, loc.longitude, activeDriver.id);
                 }
@@ -269,7 +213,6 @@ function initDriverDashboard() {
                 gpsStatusVal.textContent = `Acquired (±${Math.round(loc.accuracy)}m)`;
                 gpsStatusVal.style.color = 'var(--success)';
             },
-            // Error Callback
             (error) => {
                 gpsStatusVal.textContent = 'GPS Error: ' + error.message;
                 gpsStatusVal.style.color = 'var(--danger)';
@@ -289,7 +232,6 @@ function initDriverDashboard() {
         locationService.stopWatching();
         activeDriver.endTrip(campusBus);
 
-        // Notify Firebase that the bus is offline
         if (trackingService) {
             trackingService.setBusOffline('bus-01');
         }
@@ -305,7 +247,7 @@ function initDriverDashboard() {
 }
 
 /* =========================================================
-   AUTHENTICATION LOGIC (Milestone 7)
+   PORTAL AUTHENTICATION
    ========================================================= */
 function initLoginPage() {
     const form = document.getElementById('login-form');

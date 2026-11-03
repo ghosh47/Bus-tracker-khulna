@@ -50,8 +50,8 @@
 
                 <!-- Pickup Stop Selector -->
                 <div>
-                    <label for="stop-selector">Select Your Pickup Stop</label>
-                    <select id="stop-selector">
+                    <label for="stop-selector" style="font-weight: 600; font-size: 0.9rem;">Select Your Pickup Stop</label>
+                    <select id="stop-selector" style="margin-top: 0.4rem;">
                         <option value="">-- Choose your pickup stop --</option>
                     </select>
                 </div>
@@ -61,21 +61,6 @@
                     <div class="eta-label">Estimated Arrival Time</div>
                     <div class="eta-value" id="eta-display">-- min</div>
                     <div class="eta-sub" id="eta-details">Select a pickup stop to view estimated arrival</div>
-                </div>
-
-                <!-- Demo / Simulation Controls -->
-                <div class="card" style="padding: 0.85rem; margin-top: 0.5rem; background: #eff6ff; border-color: #bfdbfe;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">
-                        DEMO / SIMULATION MODE
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button id="sim-start-btn" style="flex: 1; padding: 0.45rem 0.5rem; font-size: 0.85rem;">
-                            ▶ Simulate Route
-                        </button>
-                        <button id="sim-reset-btn" class="btn-danger" style="flex: 1; padding: 0.45rem 0.5rem; font-size: 0.85rem;" disabled>
-                            ⏹ Reset
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Route & Telemetry Summary -->
