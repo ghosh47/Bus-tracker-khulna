@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniBus Tracker - Administration</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚌</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <span style="font-size: 1.4rem;">🚌</span>
+            <h1>Admin Control Center</h1>
+        </div>
+        <nav>
+            <a href="index.html">Student View</a>
+            <a href="login.html" id="logout-btn">Sign Out</a>
+        </nav>
+    </header>
+
+    <main>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="card">
+                <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Active Fleet</span>
+                <div style="font-size: 1.75rem; font-weight: 700;">1 Registered</div>
+            </div>
+            <div class="card">
+                <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Active Drivers</span>
+                <div style="font-size: 1.75rem; font-weight: 700;">1 On Duty</div>
+            </div>
+            <div class="card">
+                <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Configured Stops</span>
+                <div style="font-size: 1.75rem; font-weight: 700;">4 Pickup Points</div>
+            </div>
+        </div>
+
+        <!-- Bus & Driver Status Card -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.15rem; margin-bottom: 1rem;">Fleet Operational Overview</h2>
+            <div class="telemetry-grid">
+                <div class="telemetry-item">
+                    <div class="label">Bus Designation</div>
+                    <div class="value">Campus Shuttle #1</div>
+                </div>
+                <div class="telemetry-item">
+                    <div class="label">Assigned Driver</div>
+                    <div class="value">Rafiqul Islam (ID: driver1)</div>
+                </div>
+                <div class="telemetry-item">
+                    <div class="label">Trip State</div>
+                    <div class="value">
+                        <span class="badge badge-offline">Offline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configured Stops Table -->
+        <div class="card">
+            <h2 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Predefined Pickup Stops</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Route: Main Campus Terminal to City Center
+            </p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seq</th>
+                            <th>Stop Name</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Campus Main Gate</td>
+                            <td>22.8189</td>
+                            <td>89.5534</td>
+                            <td><span class="badge badge-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Central Library Circle</td>
+                            <td>22.8220</td>
+                            <td>89.5560</td>
+                            <td><span class="badge badge-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Hall of Residence 2</td>
+                            <td>22.8285</td>
+                            <td>89.5600</td>
+                            <td><span class="badge badge-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>City Center Roundabout</td>
+                            <td>22.8350</td>
+                            <td>89.5650</td>
+                            <td><span class="badge badge-active">Active</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
